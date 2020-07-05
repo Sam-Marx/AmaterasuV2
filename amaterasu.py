@@ -48,9 +48,8 @@ class Amaterasu(cmd2.Cmd):
 
 	show_parser.set_defaults(func = show)
 
-	versionGithub = requests.get('https://raw.githubusercontent.com/Sam-Marx/AmaterasuV2/master/version.txt?token=AKVEUWFGFF6M3R7Q455URDK7ADMYC').text
-	version = '0.1'
-	#version = open('version.txt', 'r').read()
+	versionGithub = requests.get('https://raw.githubusercontent.com/Sam-Marx/AmaterasuV2/master/version.txt').text
+	version = open('version.txt', 'r').read()
 
 	prompt = 'amaterasu> '
 	intro = f'Welcome to Amaterasu v{version}.\n' if version == versionGithub else f'Welcome to Amaterasu v{version}. \nAmaterasu can be updated. New version: {str(versionGithub)}.\n'
