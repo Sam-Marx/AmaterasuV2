@@ -4,16 +4,11 @@
 
 import os
 import cmd2
-import json
 import platform
 import requests
 import argparse
 from sqlconnection import *
 from prettytable import from_db_cursor
-
-class Exploitation(cmd2.Cmd):
-	def __init__(self):
-		super().__init__()
 
 show_parser = argparse.ArgumentParser()
 show_parser.add_argument('show', choices=["modules", "apis", "banner"])
