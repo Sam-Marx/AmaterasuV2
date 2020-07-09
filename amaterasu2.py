@@ -11,9 +11,9 @@ from lib.sqlconnection import *
 from lib.checksettings import *
 from prettytable import from_db_cursor
 
-from lib.modules.information_gathering.email_extractor import *
-from lib.modules.information_gathering.honeypot_detector import *
-from lib.modules.exploitation.atg_worm import *
+from modules.recon.email_extractor import *
+from modules.recon.honeypot_detector import *
+from modules.exploitation.atg_worm import *
 
 show_parser = argparse.ArgumentParser()
 show_parser.add_argument('show', choices=["modules", "apis", "banner"])
@@ -75,6 +75,10 @@ class Amaterasu(cmd2.Cmd):
 			atgworm = ATGworm()
 			atgworm.cmdloop()
 
+		if args.use == 'links_extractor':
+			linksextractor = LinksExtractor()
+			linksextractor.cmdloop()
+
 	def set_apikey(self, args):
 		sql = f"""INSERT INTO APIs(name, key) VALUES('{args.api}', '{args.key}')"""
 		SQLiteConnection().insert(SQLiteConnection().create_connection('amaterasu.db'), sql)
@@ -108,7 +112,7 @@ class Amaterasu(cmd2.Cmd):
 			func(self, args)
 		else:
 			self.do_help('use')
-	
+
 	@cmd2.with_argparser(parser_api)
 	def do_set(self, args):
 		''' Set [API key].'''

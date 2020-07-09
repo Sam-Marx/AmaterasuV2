@@ -79,6 +79,10 @@ class HoneypotDetector(cmd2.Cmd):
 		else:
 			os.system('clear')
 
+	def do_back(self, args):
+		'''Goes back to Amaterasu.'''
+		return True
+
 	def do_run(self, args):
 		''' Runs the module.'''
 		if self.target != '' or self.shodanAPIkey != '':

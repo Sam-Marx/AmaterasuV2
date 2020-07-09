@@ -9,6 +9,7 @@ import requests
 
 class checkSettings:
 	'''This class is used to check settings, targets etc.'''
+	
 	def __init__(self):
 		pass
 
