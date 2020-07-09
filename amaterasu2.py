@@ -75,10 +75,6 @@ class Amaterasu(cmd2.Cmd):
 			atgworm = ATGworm()
 			atgworm.cmdloop()
 
-		if args.use == 'links_extractor':
-			linksextractor = LinksExtractor()
-			linksextractor.cmdloop()
-
 	def set_apikey(self, args):
 		sql = f"""INSERT INTO APIs(name, key) VALUES('{args.api}', '{args.key}')"""
 		SQLiteConnection().insert(SQLiteConnection().create_connection('amaterasu.db'), sql)
