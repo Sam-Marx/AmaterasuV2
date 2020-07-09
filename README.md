@@ -10,6 +10,9 @@ pip3 install -r requirements.txt
 python3 amaterasu.py
 ```
 
+### Changelog
+Please, take a look at [CHANGELOG.md](https://github.com/Sam-Marx/AmaterasuV2/blob/master/CHANGELOG.md).
+
 ### TODO
 - [ ] Build exploitation modules
 - [ ] Build post-exploitation modules
