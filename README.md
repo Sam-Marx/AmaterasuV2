@@ -1,4 +1,12 @@
 # AmaterasuV2
+<p align="left">
+    <a href="https://github.com/Sam-Marx/AmaterasuV2/" alt="Stars">
+        <img src="https://img.shields.io/github/stars/Sam-Marx/AmaterasuV2"/></a>
+    <a href="https://github.com/Sam-Marx/AmaterasuV2/" alt="LICENSE">
+      <img src="https://img.shields.io/github/license/Sam-Marx/AmaterasuV2"/></a>
+    <a href="https://github.com/Sam-Marx/AmaterasuV2/" alt="python version">
+      <img src="https://img.shields.io/badge/python-3.6%2B-blue"></a>
+</p>
 
 Amaterasu V2.0 (WIP) is a framework focused on information gathering and pentesting. This is the second version of the project. But cleaner, faster and better.
 
