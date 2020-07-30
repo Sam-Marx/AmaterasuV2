@@ -1,5 +1,5 @@
-# AmaterasuV2
-<p align="left">
+<h1 align="center">AmaterasuV2</h1>
+<p align="center">
     <a href="https://github.com/Sam-Marx/AmaterasuV2/" alt="Stars">
         <img src="https://img.shields.io/github/stars/Sam-Marx/AmaterasuV2"/></a>
     <a href="https://github.com/Sam-Marx/AmaterasuV2/" alt="LICENSE">
