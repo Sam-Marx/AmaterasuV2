@@ -9,8 +9,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - firecookies, used to extract cookies from Mozilla Firefox
 - keylogging module, used to log keystrokes
 - scrnshot module, used to get screenshot from victim via email or ftp
-- links_extractor module, used to extract all links from websites
+- ftp_bruteforce module, used to bruteforce ftp servers
+- shellshock module, used to exploit shellshock in vulnerable servers
+- username module, used to extract information based on username
 
+## [0.2] - 2020-08-04
+### Added
+- links_extractor module, used to extract links from a website
+- emailrep module, used to extract information by an e-mail address
+- cve_2020_5902 module, used to exploit F5 BIG-IP devices
+- Almost all modules updated
+- Multiples bugs fixed
 
 ## [0.1] - 2020-07-04
 ### Added
@@ -23,3 +32,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - email_extractor module, used to extract e-mails from websites
 - atg_worm module, used to exploit atgs
 - honeypot_detector, used to detect honeypots using Shodan
+
+[0.2]: https://github.com/Sam-Marx/AmaterasuV2/compare/v0.1...v0.2
+[0.1]: https://github.com/Sam-Marx/AmaterasuV2/releases/tag/v0.1

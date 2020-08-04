@@ -20,7 +20,7 @@ parser_saveresults = set_subparsers.add_parser('saveresults', help='saveresults 
 parser_saveresults.add_argument('saveresults', type=bool)
 
 show_parser = argparse.ArgumentParser()
-show_parser.add_argument('show', choices=["target", "saveresults", "config", "banner"])
+show_parser.add_argument('show', choices=["config"])
 
 class EmailExtractor(cmd2.Cmd):
 	prompt = 'amaterasu[recon/email_extractor]> '
@@ -39,18 +39,9 @@ class EmailExtractor(cmd2.Cmd):
 
 	def show(self, args):
 		'''Shows something'''
-		if args.show == 'banner':
-			print('banner')
-
 		if args.show == 'config':
-			print(f'Target : {self.target}\nSave results : {self.saveresults}')
+			print(f'Target: {self.target}\nSave results: {self.saveresults}')
 
-		if args.show == 'target':
-			print(f'Target: {self.target}')
-
-		if args.show == 'saveresults':
-			print(f'Save results: {self.saveresults}')
-			
 	def set_target(self, args):
 		self.target = args.target
 		print(f'Target set: {self.target}')

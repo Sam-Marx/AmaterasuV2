@@ -1,13 +1,12 @@
 #!/usr/bin/env python3.7
 #coding: utf-8
-#Project amaterasu
+# Amaterasu project
 
 import argparse
 import cmd2
+import re
 import requests
-from lib.db.sqlconnection import *
-from prettytable import from_db_cursor
-from huepy import *
+from lib.checksettings import *
 
 set_parser = argparse.ArgumentParser()
 set_subparsers = set_parser.add_subparsers(title='subcommands', help='subcommand help')
@@ -15,35 +14,39 @@ set_subparsers = set_parser.add_subparsers(title='subcommands', help='subcommand
 parser_target = set_subparsers.add_parser('target', help='target help')
 parser_target.add_argument('target', type=str)
 
-show_parser = argparse.ArgumentParser()
-show_parser.add_argument('show', choices=["apis", "config"])
+parser_saveresults = set_subparsers.add_parser('saveresults', help='saveresults help')
+parser_saveresults.add_argument('saveresults', type=bool)
 
-class HoneypotDetector(cmd2.Cmd):
-	prompt = 'amaterasu[recon/honeypot_detector]> '
-	#del cmd2.Cmd.do_set
+show_parser = argparse.ArgumentParser()
+show_parser.add_argument('show', choices=["config"])
+
+class LinksExtractor(cmd2.Cmd):
+	prompt = 'amaterasu[recon/links_extractor]> '
 
 	def __init__(self):
 		# terminal lock
 		super().__init__()
-
-		# db connection
-		self.sql_connection = SQLiteConnection().create_connection('lib/db/amaterasu.db')
+		self.__version__ = 1
 		self.target = ''
-		self.shodanAPIkey = SQLiteConnection().select_task_by_priority(self.sql_connection, "key", "APIs", "name", "shodan")[0][0]
+		self.saveresults = False
+		self.allLinks = []
+		self.href_regex = re.compile('href="(.*?)"')
 
 	def show(self, args):
 		'''Shows something'''
 		if args.show == 'config':
-			print(f'Target: {self.target}\nShodan API key: {self.shodanAPIkey}')
-
-		if args.show == 'apis':
-			print(from_db_cursor(SQLiteConnection().select_all_from_task(self.sql_connection, 'apis')))
+			print(f'Target: {self.target}\nSave results : {self.saveresults}')
 
 	def set_target(self, args):
-		self.target = args.target
+		self.target = f'http://{args.target}' if not args.target.startswith('http') else args.target
 		print(f'Target set: {self.target}')
 
+	def set_saveresults(self, args):
+		self.saveresults = args.saveresults
+		print(f'Save results set: {self.saveresults}')
+
 	parser_target.set_defaults(func = set_target)
+	parser_saveresults.set_defaults(func = set_saveresults)
 	show_parser.set_defaults(func = show)
 
 	@cmd2.with_argparser(show_parser)
@@ -77,17 +80,22 @@ class HoneypotDetector(cmd2.Cmd):
 		'''Goes back to Amaterasu.'''
 		return True
 
-	def do_run(self, args):
-		''' Runs the module.'''
-		if self.target != '' or self.shodanAPIkey != None:
-			requestShodan = requests.get(f'https://api.shodan.io/labs/honeyscore/{self.target}?key={self.shodanAPIkey}')
+	def getLinks(self):
+		requestTarget = requests.get(self.target).text
 
-			if requestShodan.status_code == 401:
-				print(bad('Unauthorized request. You need an API key to use this module.'))
-			if requestShodan.status_code == 200:
-				if float(requestShodan.text) > 0.5:
-					print(f'Apparently, it is a honeypot.\nScore: {requestShodan.text}')
-				else:
-					print(f'It is not a honeypot, apparently.\nScore: {requestShodan.text}')
+		for link in self.href_regex.findall(requestTarget):
+			if link.startswith('/') or link.startswith('#'):
+				self.allLinks.append(self.target + link)
+			else:
+				self.allLinks.append(link)
+
+		self.allLinks = sorted(set(self.allLinks))
+
+	def do_run(self, args):
+		self.getLinks()
+
+		if len(self.allLinks) != 0:
+			for link in self.allLinks:
+				print(f'{link} found.')
 		else:
-			print('You need to set a target and a Shodan API key.')
+			print('Nothing was found.')

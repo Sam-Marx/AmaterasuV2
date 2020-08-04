@@ -24,12 +24,14 @@ class SQLiteConnection:
 		cursor = connection.cursor()
 		cursor.close()
 
-	def select_all_from_task(self, connection, table):
+	def select_all_from_task(self, connection, table, fetch = False):
 		try:	
 			with connection:
 				cursor = connection.cursor()
 				cursor.execute(f"SELECT * FROM {table}")
 
+				if fetch:
+					return cursor.fetchall()
 				return cursor
 		except Exception as e:
 			print(e)
@@ -39,8 +41,9 @@ class SQLiteConnection:
 			with connection:
 				cursor = connection.cursor()
 				cursor.execute(f"SELECT {column} FROM {table}")
+				rows = cursor.fetchall()
 
-				return cursor
+				return rows
 		except Exception as e:
 			print(e)
 
@@ -50,11 +53,22 @@ class SQLiteConnection:
 				cursor = connection.cursor()
 				cursor.execute(sql)
 
-				return cursor.fetchall()[0][0]
-
+				return cursor.fetchall()
 		except IndexError:
 			return None
 
+		except Exception as e:
+			print(e)
+
+	def select_task_by_priority(self, connection, value, table, name, priority):
+		try:	
+			with connection:
+				cursor = connection.cursor()
+				cursor.execute(f"SELECT {value} FROM {table} WHERE {name}='{priority}'")
+
+				rows = cursor.fetchall()
+
+				return rows
 		except Exception as e:
 			print(e)
 
