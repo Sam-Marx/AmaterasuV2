@@ -1,8 +1,8 @@
-cmd2==1.1.0
+cmd2==1.2.1
 prettytable==0.7.2
 requests==2.24.0
 tldextract==2.2.2
-pwntools==4.2.0
+pwntools==4.2.1
 huepy==1.2.1
 lxml==4.5.2
 holehe==1.21
