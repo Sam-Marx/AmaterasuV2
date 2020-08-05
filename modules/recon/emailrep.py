@@ -120,7 +120,7 @@ class EmailRep(cmd2.Cmd):
 		# https://leak-lookup.com
 		if self.leak_lookup_api_key is not None:
 			try:
-				requestLeakLookup = requests.get('https://leak-lookup.com/api/search', data=f'key={self.leak_lookup_api_key}&type=email_address&query={self.target}', timeout=self.timeout5)
+				requestLeakLookup = requests.get('https://leak-lookup.com/api/search', data=f'key={self.leak_lookup_api_key}&type=email_address&query={self.target}', timeout=self.timeout)
 
 				if requestLeakLookup.status_code == 200:
 					leakLookupJson = requestLeakLookup.json()
@@ -173,7 +173,7 @@ class EmailRep(cmd2.Cmd):
 			headers = {'User-Agent':'AmaterasuV2', 'Content-Type':'application/json', 'Key':self.emailrep_key}
 
 			try:
-				requestEmailRep = requests.get(f'https://emailrep.io/{self.target}', headers=self.headers, timeout=self.timeout5)
+				requestEmailRep = requests.get(f'https://emailrep.io/{self.target}', headers=self.headers, timeout=self.timeout)
 
 				if requestEmailRep.status_code == 200:
 					emailrepJson = requestEmailRep.json()
@@ -204,11 +204,11 @@ class EmailRep(cmd2.Cmd):
 			pass
 
 	def profile_gatherer(self):
-		einfo_dict = {}
-		einfo_and_holehe_services = [twitter, facebook, spotify, steam, pinterest, discord, instagram, pornhub, xvideos, redtube, 
-			holehe.apple, holehe.adobe, holehe.ebay, holehe.pastebin, holehe.firefox, holehe.office365, holehe.live, holehe.lastfm, holehe.tumblr, holehe.github, holehe.evernote]
-
 		try:
+			einfo_dict = {}
+			einfo_and_holehe_services = [twitter, facebook, spotify, steam, pinterest, discord, instagram, pornhub, xvideos, redtube, 
+				holehe.adobe, holehe.ebay, holehe.pastebin, holehe.firefox, holehe.office365, holehe.live, holehe.lastfm, holehe.tumblr, holehe.github]
+
 			with concurrent.futures.ThreadPoolExecutor(max_workers = len(einfo_and_holehe_services) + 30) as executor:
 				for service in einfo_and_holehe_services:
 					einfo_dict[service.__name__] = executor.submit(service, self.target)
