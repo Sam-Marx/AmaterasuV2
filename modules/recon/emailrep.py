@@ -22,6 +22,9 @@ set_subparsers = set_parser.add_subparsers(title='subcommands', help='subcommand
 parser_target = set_subparsers.add_parser('target', help='target help')
 parser_target.add_argument('target', type=str)
 
+parser_timeout = set_subparsers.add_parser('timeout', help='timeout request. Default: 5 seconds')
+parser_timeout.add_argument('timeout', type=str)
+
 show_parser = argparse.ArgumentParser()
 show_parser.add_argument('show', choices=["apis", "config"])
 
@@ -36,6 +39,7 @@ class EmailRep(cmd2.Cmd):
 		self.sql_connection = SQLiteConnection().create_connection('lib/db/amaterasu.db')
 
 		self.target = ''
+		self.timeout = 5
 
 		self.leak_lookup_api_key = SQLiteConnection().select_task_by_priority(self.sql_connection, "key", "APIs", "name", "leak_lookup")[0][0]
 		self.emailrep_key = SQLiteConnection().select_task_by_priority(self.sql_connection, "key", "APIs", "name", "emailrep")[0][0]
@@ -46,7 +50,7 @@ class EmailRep(cmd2.Cmd):
 	def show(self, args):
 		'''Shows something'''
 		if args.show == 'config':
-			print(f'Target: {self.target}')
+			print(f'Target: {self.target}\nTimeout: {self.timeout}')
 
 		if args.show == 'apis':
 			print(from_db_cursor(SQLiteConnection().select_all_from_task(self.sql_connection, 'apis')))
@@ -55,7 +59,12 @@ class EmailRep(cmd2.Cmd):
 		self.target = args.target
 		print(info(f'Target set: {self.target}'))
 
+	def set_timeout(self, args):
+		self.timeout = args.timeout
+		print(info(f'Timeout set: {self.timeout}'))
+
 	parser_target.set_defaults(func = set_target)
+	parser_timeout.set_defaults(func = set_timeout)
 	show_parser.set_defaults(func = show)
 
 	@cmd2.with_argparser(set_parser)
@@ -98,12 +107,15 @@ class EmailRep(cmd2.Cmd):
 				self.profile_gatherer
 			]
 
+			threaded_start = time.time()
 			for function in functions:
 				with concurrent.futures.ThreadPoolExecutor() as executor:
 					executor.submit(function)
 
 			for profile in sorted(set(self.profiles)):
 				print(good(f'Profile found: \t{profile}'))
+
+			print("Threaded time:", time.time() - threaded_start)
 
 		except Exception as e:
 			print(f'Thread error: {e}')
@@ -112,19 +124,16 @@ class EmailRep(cmd2.Cmd):
 		# https://leak-lookup.com
 		if self.leak_lookup_api_key is not None:
 			try:
-				requestLeakLookup = requests.get('https://leak-lookup.com/api/search', data=f'key={self.leak_lookup_api_key}&type=email_address&query={self.target}', timeout=2)
+				requestLeakLookup = requests.get('https://leak-lookup.com/api/search', data=f'key={self.leak_lookup_api_key}&type=email_address&query={self.target}', timeout=self.timeout5)
+
 				if requestLeakLookup.status_code == 200:
 					leakLookupJson = requestLeakLookup.json()
 
-					message = leakLookupJson['message']
-
-					if leakLookupJson['error'] == True:
-						print(bad(f'Leak-Lookup\t\tError: {message}'))
-					else:
-						for link in message:
+					if leakLookupJson['error'] == False:
+						for link in leakLookupJson["message"]:
 							print(good(f'Leak-Lookup\t\tLeak found: {link}'))
-				elif requestLeakLookup.status_code == 401:
-					print(bad(f'Leak-Lookup\t\terror: invalid api key'))
+					else:
+						print(bad(f'Leak-Lookup\t\terror: {leakLookupJson["message"].lower()}'))
 			except:
 				pass
 
@@ -133,18 +142,10 @@ class EmailRep(cmd2.Cmd):
 		if self.fullcontact_key is not None:
 			headers = {'Content-Type':'application/json', 'Authorization':f'Bearer {self.fullcontact_key}'}
 			data = json.dumps({'email':self.target})
+			status_code_guide = {404:'Profile not found', 401:'API key error. Try another key.', 429:'You have reached your request rate limit.'}
 
 			try:
-				request_fullcontact = requests.post('https://api.fullcontact.com/v3/person.enrich', headers=headers, data=data, timeout=2)
-
-				if request_fullcontact.status_code == 404:
-					print(bad('Fullcontact\t\tProfile not found.'))
-
-				if request_fullcontact.status_code == 401:
-					print(bad('Fullcontact\t\tAPI key error. Try another key.'))
-
-				if request_fullcontact.status_code == 429:
-					print(bad('Fullcontact\t\tYou have reached your request rate limit.'))
+				request_fullcontact = requests.post('https://api.fullcontact.com/v3/person.enrich', headers=headers, data=data, timeout=self.timeout)
 
 				if request_fullcontact.status_code == 200:
 					for data in ['fullName', 'gender', 'location', 'organization', 'linkedin']:
@@ -163,6 +164,10 @@ class EmailRep(cmd2.Cmd):
 							self.profiles.remove(profile)
 						else:
 							self.profiles.append(profile)
+				else:
+					if request_fullcontact.status_code in status_code_guide.keys():
+						print(bad(f'Fullcontact\t\t{status_code_guide[request_fullcontact.status_code]}'))
+
 			except:
 				pass
 
@@ -172,7 +177,7 @@ class EmailRep(cmd2.Cmd):
 			headers = {'User-Agent':'AmaterasuV2', 'Content-Type':'application/json', 'Key':self.emailrep_key}
 
 			try:
-				requestEmailRep = requests.get(f'https://emailrep.io/{self.target}', headers=self.headers, timeout=2)
+				requestEmailRep = requests.get(f'https://emailrep.io/{self.target}', headers=self.headers, timeout=self.timeout5)
 
 				if requestEmailRep.status_code == 200:
 					emailrepJson = requestEmailRep.json()
@@ -197,38 +202,29 @@ class EmailRep(cmd2.Cmd):
 
 	def domainBigData(self):
 		try:
-			for domain in domainbigdata(self.target).get_domains():
+			for domain in domainbigdata(self.target, self.timeout).get_domains():
 				print(good(f'DomainBigData\tDomain owned: {domain}'))
 		except:
 			pass
 
 	def profile_gatherer(self):
-		holehe_dict 	= {}
-		einfo_dict  	= {}
-		einfo_services  = [twitter, facebook, spotify, steam, pinterest, discord, instagram, pornhub, xvideos, redtube]
-		holehe_services = [holehe.apple, holehe.adobe, holehe.ebay, holehe.pastebin, holehe.firefox, holehe.office365, holehe.live, holehe.lastfm, holehe.tumblr, holehe.github]
+		einfo_dict = {}
+		einfo_and_holehe_services = [twitter, facebook, spotify, steam, pinterest, discord, instagram, pornhub, xvideos, redtube, holehe.apple, holehe.adobe, holehe.ebay, holehe.pastebin, holehe.firefox, holehe.office365, holehe.live, holehe.lastfm, holehe.tumblr, holehe.github]
 
 		try:
-			with concurrent.futures.ThreadPoolExecutor(max_workers = len(einfo_services)) as executor:
-				for service in einfo_services:
+			with concurrent.futures.ThreadPoolExecutor(max_workers = len(einfo_and_holehe_services) + 30) as executor:
+				for service in einfo_and_holehe_services:
 					einfo_dict[service.__name__] = executor.submit(service, self.target)
 
 				for service, future in zip(einfo_dict.keys(), concurrent.futures.as_completed(einfo_dict.values())):
-					if future.result():
-						self.profiles.append(service)
+					try:
+						if future.result() == True:
+							self.profiles.append(service)
+
+						if future.result()['exists'] == True:
+							self.profiles.append(service)
+					except:
+						continue
 
 		except Exception as e:
-			print(bad(f'Einfo error: {e}'))
-
-		try:
-			with concurrent.futures.ThreadPoolExecutor(max_workers = len(holehe_services)) as executor:
-				for service in holehe_services:
-					holehe_dict[service.__name__] = executor.submit(service, self.target)
-
-				for service, future in zip(holehe_dict.keys(), concurrent.futures.as_completed(holehe_dict.values())):
-					if future.result()['exists']:
-						self.profiles.append(service)
-
-		except Exception as e:
-			print(bad(f'Holehe error: {e}'))
-			
+			print(bad(f'E-info error: {e}'))
