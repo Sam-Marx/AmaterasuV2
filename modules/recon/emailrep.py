@@ -205,7 +205,8 @@ class EmailRep(cmd2.Cmd):
 
 	def profile_gatherer(self):
 		einfo_dict = {}
-		einfo_and_holehe_services = [twitter, facebook, spotify, steam, pinterest, discord, instagram, pornhub, xvideos, redtube, holehe.apple, holehe.adobe, holehe.ebay, holehe.pastebin, holehe.firefox, holehe.office365, holehe.live, holehe.lastfm, holehe.tumblr, holehe.github]
+		einfo_and_holehe_services = [twitter, facebook, spotify, steam, pinterest, discord, instagram, pornhub, xvideos, redtube, 
+			holehe.apple, holehe.adobe, holehe.ebay, holehe.pastebin, holehe.firefox, holehe.office365, holehe.live, holehe.lastfm, holehe.tumblr, holehe.github, holehe.evernote]
 
 		try:
 			with concurrent.futures.ThreadPoolExecutor(max_workers = len(einfo_and_holehe_services) + 30) as executor:
