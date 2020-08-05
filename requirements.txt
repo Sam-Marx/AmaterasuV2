@@ -5,5 +5,5 @@ tldextract==2.2.2
 pwntools==4.2.1
 huepy==1.2.1
 lxml==4.5.2
-holehe==1.21
+holehe==1.22
 bs4==0.0.1
