@@ -94,17 +94,17 @@ class EmailRep(cmd2.Cmd):
 			functions = [self.emailrepio,
 				self.leaklookup,
 				self.domainBigData,
-				self.holehe_profiles,
 				self.fullcontact,
-				self.einfo
+				self.profile_gatherer
 			]
 
 			for function in functions:
 				with concurrent.futures.ThreadPoolExecutor() as executor:
-					future = executor.submit(function)
+					executor.submit(function)
 
 			for profile in sorted(set(self.profiles)):
 				print(good(f'Profile found: \t{profile}'))
+
 		except Exception as e:
 			print(f'Thread error: {e}')
 
@@ -202,28 +202,33 @@ class EmailRep(cmd2.Cmd):
 		except:
 			pass
 
-	def holehe_profiles(self):
-		services = [holehe.apple, holehe.adobe, holehe.ebay, holehe.pastebin, holehe.firefox, holehe.office365, holehe.live, holehe.lastfm, holehe.tumblr, holehe.github]
-		try:
-			for service in services:
-				with concurrent.futures.ThreadPoolExecutor(len(services)) as executor:
-					future = executor.submit(service, self.target)
-					result = future.result()
-					if result['exists']:
-						self.profiles.append(service.__name__)
-						#print(good(f'Profile found: \t{service.__name__}'))
-		except:
-			pass
+	def profile_gatherer(self):
+		holehe_dict 	= {}
+		einfo_dict  	= {}
+		einfo_services  = [twitter, facebook, spotify, steam, pinterest, discord, instagram, pornhub, xvideos, redtube]
+		holehe_services = [holehe.apple, holehe.adobe, holehe.ebay, holehe.pastebin, holehe.firefox, holehe.office365, holehe.live, holehe.lastfm, holehe.tumblr, holehe.github]
 
-	def einfo(self):
-		services = [twitter, facebook, spotify, steam, pinterest, discord, instagram, pornhub, xvideos, redtube]
 		try:
-			for service in services:
-				with concurrent.futures.ThreadPoolExecutor(len(services)) as executor:
-					future = executor.submit(service, self.target)
-					result = future.result()
-					if result:
-						self.profiles.append(service.__name__)
-						#print(good(f'Profile found: \t{service.__name__}'))
+			with concurrent.futures.ThreadPoolExecutor(max_workers = len(einfo_services)) as executor:
+				for service in einfo_services:
+					einfo_dict[service.__name__] = executor.submit(service, self.target)
+
+				for service, future in zip(einfo_dict.keys(), concurrent.futures.as_completed(einfo_dict.values())):
+					if future.result():
+						self.profiles.append(service)
+
 		except Exception as e:
-			print(e)
+			print(bad(f'Einfo error: {e}'))
+
+		try:
+			with concurrent.futures.ThreadPoolExecutor(max_workers = len(holehe_services)) as executor:
+				for service in holehe_services:
+					holehe_dict[service.__name__] = executor.submit(service, self.target)
+
+				for service, future in zip(holehe_dict.keys(), concurrent.futures.as_completed(holehe_dict.values())):
+					if future.result()['exists']:
+						self.profiles.append(service)
+
+		except Exception as e:
+			print(bad(f'Holehe error: {e}'))
+			
