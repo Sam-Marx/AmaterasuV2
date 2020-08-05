@@ -107,16 +107,12 @@ class EmailRep(cmd2.Cmd):
 				self.profile_gatherer
 			]
 
-			threaded_start = time.time()
 			for function in functions:
 				with concurrent.futures.ThreadPoolExecutor() as executor:
 					executor.submit(function)
 
 			for profile in sorted(set(self.profiles)):
 				print(good(f'Profile found: \t{profile}'))
-
-			print("Threaded time:", time.time() - threaded_start)
-
 		except Exception as e:
 			print(f'Thread error: {e}')
 
