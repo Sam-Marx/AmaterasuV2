@@ -17,4 +17,4 @@ jobs:
       env: PATH=/c/Python38:/c/Python38/Scripts:$PATH
 
 install: pip install -r  requirements.txt
-script: python amaterasu.py || python3 amaterasu.py
+script: python amaterasu2.py || python3 amaterasu2.py
