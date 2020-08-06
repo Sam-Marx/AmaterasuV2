@@ -32,9 +32,9 @@ parser_api.add_argument('key', type=str)
 
 class Amaterasu(cmd2.Cmd):
 	version = open('version.txt', 'r').read()
-
+	checkUpdate = checkSettings().checkUpdate()
 	prompt = 'amaterasu> '
-	intro = f'{banner()} Welcome to Amaterasu v{version}.\n{checkSettings().checkUpdate()}'
+	intro = f'{banner()} Welcome to Amaterasu v{version}.\n{checkUpdate if checkUpdate else ""}'
 
 	del cmd2.Cmd.do_edit
 	del cmd2.Cmd.do_py
@@ -70,7 +70,7 @@ class Amaterasu(cmd2.Cmd):
 				'atg_worm':ATGworm().cmdloop,
 				'links_extractor':LinksExtractor().cmdloop,
 				'emailrep':EmailRep().cmdloop,
-				'cve_2020_5902':cve_2020_5902().cmdloop
+				'cve_2020_5902':cve20205902().cmdloop
 			}
 
 			modules[args.use.lower()]()

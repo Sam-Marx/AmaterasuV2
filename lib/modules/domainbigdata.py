@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 
 class domainbigdata:
-	def __init__(self, email, timeout):
+	def __init__(self, email: str, timeout: int):
 		self.email = email
 		self.url = f'https://domainbigdata.com/email/{self.email}'
 		self.timeout = timeout

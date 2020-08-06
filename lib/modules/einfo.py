@@ -12,7 +12,7 @@ Made by @N0n4Me (Telegram)
 Adapted by @SamMarx (Telegram)
 '''
 
-def twitter(email):
+def twitter(email: str) -> bool:
 	user_agent = 'Mozilla/5.0 (Linux; U; Android 6.0; en-us; Nexus 30 Build/JOJeG) AppleWebKit/587.20 (KHTML, like Gecko) Version/3.0 Mobile Safari/5894.10'
 	headers = {"User-Agent":user_agent}
 
@@ -30,7 +30,7 @@ def twitter(email):
 	except:
 		return False
 
-def facebook(email):
+def facebook(email: str) -> bool:
 	check_url = 'https://m.facebook.com/login/identify/?ctx=recover&search_attempts'
 	headers = {"Host":"m.facebook.com",
 	"Connection":"keep-alive",
@@ -59,7 +59,7 @@ def facebook(email):
 		return False
 		print(e)
 
-def pornhub(email):
+def pornhub(email: str) -> bool:
 	headers = {"User-Agent":"Mozilla/5.0 (Linux; U; Android 8.0; en-us; Nexus 11 Build/JOP24G) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30"}
 	url = 'https://www.pornhub.com/signup'
 
@@ -79,7 +79,7 @@ def pornhub(email):
 	except:
 		return False
 
-def xvideos(email):
+def xvideos(email: str) -> bool:
 	email = email.replace('@', '%40')
 	headers = {'User-Agent': 'Mozilla/5.0 (Linux; U; Android 6.0; en-us; Nexus 30 Build/JOJeG) AppleWebKit/587.20 (KHTML, like Gecko) Version/3.0 Mobile Safari/5894.10'}
 
@@ -92,7 +92,7 @@ def xvideos(email):
 	except:
 		return False
 
-def redtube(email):
+def redtube(email: str) -> bool:
 	headers = {'X-Requested-With':'XMLHttpRequest', 'User-Agent': 'Mozilla/5.0 (Linux; U; Android 6.0; en-us; Nexus 30 Build/JOJeG) AppleWebKit/587.20 (KHTML, like Gecko) Version/3.0 Mobile Safari/5894.10', 'Referer':'https://www.redtube.com/register', 'language':'{"lang":"en","showMsg":false}'}
 
 	try:
@@ -108,7 +108,7 @@ def redtube(email):
 	except:
 		return False
 
-def spotify(email):
+def spotify(email: str) -> bool:
 	try:
 		request_spotify = requests.get(f'https://spclient.wg.spotify.com/signup/public/v1/account?validate=1&email={email}')
 
@@ -118,7 +118,7 @@ def spotify(email):
 	except:
 		return False
 
-def steam(email):
+def steam(email: str) -> bool:
 	headers = {'User-Agent':'IR4ndOn4605'}
 	email_replaced = email.replace('@', '%40')
 
@@ -147,7 +147,7 @@ def steam(email):
 	except Exception as e:
 		return False
 
-def pinterest(email):
+def pinterest(email: str) -> bool:
 	headers = {"User-Agent":"Mozilla/5.0 (Linux; U; Android 8.0; en-us; Nexus 11 Build/JOP24G) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Mobile Safari/534.30"}
 
 	try:
@@ -159,7 +159,7 @@ def pinterest(email):
 	except:
 		return False
 
-def discord(email):
+def discord(email: str) -> bool:
 	headers = {'User-Agent': 'Mozilla/5.0 (Linux; Android 5.1.1; SM-J200BT Build/LMY47X; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/55.0.2883.91 Mobile Safari/537.36', 
 	'Content-Type': 'application/json'}
 
@@ -181,7 +181,7 @@ def discord(email):
 	except:
 		return False
 
-def instagram(email):
+def instagram(email: str) -> bool:
 	headers = {"Host": "www.instagram.com", "Connection": "keep-alive", 
 	"Origin": "https://www.instagram.com", "CSP": 
 	"active", "Accept": "*/*", "Content-Type": "application/x-www-form-urlencoded", 

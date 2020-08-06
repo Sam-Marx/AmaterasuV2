@@ -13,7 +13,7 @@ class checkSettings:
 	def __init__(self):
 		pass
 
-	def checkHTTP(self, website):
+	def checkHTTP(self, website: str) -> bool:
 		if website.startswith('http://') or website.startswith('https://'):
 			return True
 
@@ -32,7 +32,6 @@ class checkSettings:
 
 			if float(versionGithub) != float(version):
 				return f"Amaterasu can be updated. New version: {versionGithub}"
-			else: return ''
+			return None
 		except Exception as e:
-			return "Could not check the Github's version."
-			#return e
+			return "Could not check Github's version."
