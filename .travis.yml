@@ -1,11 +1,4 @@
-sudo: false
 language: python
-dist: "trusty"
-addons:
-  apt:
-    packages:
-      - "python3"
-      - "python3-pip"
 jobs:
   include:
     - name: "Python 3.8.0 on Xenial Linux"
