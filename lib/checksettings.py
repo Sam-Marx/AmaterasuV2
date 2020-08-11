@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3
 #coding: utf-8
 # Amaterasu project
 
@@ -7,6 +7,7 @@ import functools
 import operator
 import requests
 import re
+import socket
 
 from cmd2 import ansi
 
@@ -25,6 +26,9 @@ class checkSettings:
 		if os.path.isdir('reports') is False:
 			return False
 		return True
+
+	def clearstring(self, string: str) -> str:
+		return string.replace('_', ' ').capitalize()
 
 	def tupleToString(self, tuple_arg: tuple) -> str:
 		return functools.reduce(operator.add, (tuple_arg))
@@ -47,6 +51,19 @@ class checkSettings:
 		except Exception as e:
 			return "Could not check Github's version."
 
-	def ansi_print(text: str):
+	def ansi_print(self, text: str):
 		'''Wraps style_aware_write so style can be stripped if needed'''
 		ansi.style_aware_write(sys.stdout, f'{text}\n\n')
+
+	def get_banner(self, ip_address: str, port: int) -> str:
+		try:
+			sock = socket.socket()
+			sock.settimeout(5)
+			sock.connect((ip_address, port))
+			banner = sock.recv(1024)
+			sock.shutdown()
+			sock.close()
+
+			return banner.decode("utf-8")
+		except:
+			return None
