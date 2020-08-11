@@ -8,6 +8,7 @@ import operator
 import requests
 import re
 import socket
+from typing import Optional
 
 from cmd2 import ansi
 
@@ -55,15 +56,17 @@ class checkSettings:
 		'''Wraps style_aware_write so style can be stripped if needed'''
 		ansi.style_aware_write(sys.stdout, f'{text}\n\n')
 
-	def get_banner(self, ip_address: str, port: int) -> str:
+	def get_banner(self, ip_address: str, port: int, timeout: Optional[int] = 5) -> str:
+		socket.setdefaulttimeout(timeout)
+		sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
 		try:
-			sock = socket.socket()
-			sock.settimeout(5)
 			sock.connect((ip_address, port))
+
 			banner = sock.recv(1024)
-			sock.shutdown()
+			sock.shutdown(socket.SHUT_RDWR)
 			sock.close()
 
 			return banner.decode("utf-8")
-		except:
-			return None
+		except Exception as e:
+			return e
