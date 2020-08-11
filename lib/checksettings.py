@@ -68,5 +68,5 @@ class checkSettings:
 			sock.close()
 
 			return banner.decode("utf-8")
-		except Exception as e:
-			return e
+		except:
+			return "Unable to get server's banner."
