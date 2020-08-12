@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.8
+#!/usr/bin/env python3
 #coding: utf-8
 # Amaterasu project
 
@@ -15,6 +15,8 @@ from prettytable import from_db_cursor
 
 from lib.modules import *
 from lib.db.sqlconnection import *
+from lib.checksettings import *
+from lib.opt_data import *
 
 set_parser = argparse.ArgumentParser()
 set_subparsers = set_parser.add_subparsers(title='subcommands', help='subcommand help')
@@ -29,8 +31,6 @@ show_parser = argparse.ArgumentParser()
 show_parser.add_argument('show', choices=["apis", "config"])
 
 class EmailRep(cmd2.Cmd):
-	prompt = 'amaterasu[recon/emailrep]> '
-
 	def __init__(self):
 		# terminal lock
 		super().__init__()
@@ -38,14 +38,29 @@ class EmailRep(cmd2.Cmd):
 		# db connection
 		self.sql_connection = SQLiteConnection().create_connection('lib/db/amaterasu.db')
 
-		self.target = ''
+		self.target = None
 		self.timeout = 5
+		self.metadata = {'Description'	: 'Retrieves e-mails data, e.g. social networks, name, reputation etc.',
+						'Author'	 	: 'Sam Marx <sam-marx[at]protonmail.com>',
+						'Version'	 	: '1.0',
+		}
 
 		self.leak_lookup_api_key = SQLiteConnection().select_task_by_priority(self.sql_connection, "key", "APIs", "name", "leak_lookup")[0][0]
 		self.emailrep_key = SQLiteConnection().select_task_by_priority(self.sql_connection, "key", "APIs", "name", "emailrep")[0][0]
 		self.fullcontact_key = SQLiteConnection().select_task_by_priority(self.sql_connection, "key", "APIs", "name", "fullcontact")[0][0]
 
 		self.profiles = []
+
+		Options = Opt()
+		Options.new(name='target', current_setting=self.target, required=True, description="Target's email")
+		Options.new(name='emailrep', current_setting=self.emailrep_key, required=False, description='Emailrep API key')
+		Options.new(name='leak_lookup_api_key', current_setting=self.leak_lookup_api_key, required=False, description='Leak-Lookup API key')
+		Options.new(name='fullcontact_key', current_setting=self.fullcontact_key, required=False, description='Fullcontact API key')
+
+		self.prompt = 'amaterasu[recon/emailrep]> '
+		self.intro = f'{lightblue("Provided by:")}\n{self.metadata["Author"]}\n\n'
+		self.intro += f'{lightblue("Description:")}\n{self.metadata["Description"]}\n\n'
+		self.intro += f'{lightblue("Options:")}\n{Options.create_table()}\n'
 
 	def show(self, args):
 		'''Shows something'''
@@ -97,24 +112,27 @@ class EmailRep(cmd2.Cmd):
 			return True
 
 	def do_run(self, args):
-		try:
-			self.profiles.clear()
+		if self.target is not None:
+			try:
+				self.profiles.clear()
 
-			functions = [self.emailrepio,
-				self.leaklookup,
-				self.domainBigData,
-				self.fullcontact,
-				self.profile_gatherer
-			]
+				functions = [self.emailrepio,
+					self.leaklookup,
+					self.domainBigData,
+					self.fullcontact,
+					self.profile_gatherer
+				]
 
-			for function in functions:
-				with concurrent.futures.ThreadPoolExecutor() as executor:
-					executor.submit(function)
+				for function in functions:
+					with concurrent.futures.ThreadPoolExecutor() as executor:
+						executor.submit(function)
 
-			for profile in sorted(set(self.profiles)):
-				print(good(f'Profile found: \t{profile}'))
-		except Exception as e:
-			print(f'Thread error: {e}')
+				for profile in sorted(set(self.profiles)):
+					print(good(f'Profile found: \t{profile}'))
+			except Exception as e:
+				print(bad(f'Thread error: {e}'))
+		else:
+			print(bad('You need to set a target.'))
 
 	def leaklookup(self):
 		# https://leak-lookup.com
@@ -125,13 +143,13 @@ class EmailRep(cmd2.Cmd):
 				if requestLeakLookup.status_code == 200:
 					leakLookupJson = requestLeakLookup.json()
 
-					if leakLookupJson['error'] == False:
+					if leakLookupJson['error'] == 'false':
 						for link in leakLookupJson["message"]:
 							print(good(f'Leak-Lookup\t\tLeak found: {link}'))
 					else:
-						print(bad(f'Leak-Lookup\t\terror: {leakLookupJson["message"].lower()}'))
-			except:
-				pass
+						print(bad(f'Leak-Lookup\t\terror: {leakLookupJson["message"]}'))
+			except Exception as e:
+				print(bad(f'Leak-Lookup:\t{e}'))
 
 	def fullcontact(self):
 		# https://fullcontact.com
@@ -163,9 +181,8 @@ class EmailRep(cmd2.Cmd):
 				else:
 					if request_fullcontact.status_code in status_code_guide.keys():
 						print(bad(f'Fullcontact\t\t{status_code_guide[request_fullcontact.status_code]}'))
-
-			except:
-				pass
+			except Exception as e:
+				print(bad(f'Fullcontact:\t\t{e}'))
 
 	def emailrepio(self):
 		# emailrep.io
@@ -173,7 +190,7 @@ class EmailRep(cmd2.Cmd):
 			headers = {'User-Agent':'AmaterasuV2', 'Content-Type':'application/json', 'Key':self.emailrep_key}
 
 			try:
-				requestEmailRep = requests.get(f'https://emailrep.io/{self.target}', headers=self.headers, timeout=self.timeout)
+				requestEmailRep = requests.get(f'https://emailrep.io/{self.target}', headers=headers, timeout=self.timeout)
 
 				if requestEmailRep.status_code == 200:
 					emailrepJson = requestEmailRep.json()
@@ -181,7 +198,7 @@ class EmailRep(cmd2.Cmd):
 
 					for detail in ['last_seen', 'first_seen', 'data_breach', 'credentials_leaked']:
 						if emailrepJson['details'][detail] is not None:
-							data = detail.capitalize().replace('_', ' ')
+							data = checkSettings().clearstring(detail)
 							print(good(f'EmailRep\t\t{data}: ' + str(emailrepJson['details'][detail])))
 
 					for profile in profiles:
@@ -193,21 +210,23 @@ class EmailRep(cmd2.Cmd):
 					print(bad('EmailRep\t\terror: invalid api key'))
 				elif requestEmailRep.status_code == 429:
 					print(bad('EmailRep\t\terror: too many requests. Contact emailrep.io for an api key'))
-			except:
-				pass
+			except Exception as e:
+				print(bad(f'Emailrep:\t\t{e}'))
 
 	def domainBigData(self):
 		try:
 			for domain in domainbigdata(self.target, self.timeout).get_domains():
 				print(good(f'DomainBigData\tDomain owned: {domain}'))
-		except:
-			pass
+		except Exception as e:
+			print(bad(f'DomainBigData:\t\t{e}'))
 
 	def profile_gatherer(self):
 		try:
 			einfo_dict = {}
-			einfo_and_holehe_services = [twitter, facebook, spotify, steam, pinterest, discord, instagram, pornhub, xvideos, redtube, 
-				holehe.adobe, holehe.ebay, holehe.pastebin, holehe.firefox, holehe.office365, holehe.live, holehe.lastfm, holehe.tumblr, holehe.github]
+			einfo_and_holehe_services = [twitter, facebook, spotify, steam, pinterest, 
+				discord, instagram, pornhub, xvideos, redtube, holehe.aboutme, 
+				holehe.adobe, holehe.ebay, holehe.firefox, holehe.office365, 
+				holehe.live, holehe.lastfm, holehe.tumblr, holehe.github]
 
 			with concurrent.futures.ThreadPoolExecutor(max_workers = len(einfo_and_holehe_services) + 30) as executor:
 				for service in einfo_and_holehe_services:
@@ -224,4 +243,4 @@ class EmailRep(cmd2.Cmd):
 						continue
 
 		except Exception as e:
-			print(bad(f'E-info error: {e}'))
+			print(bad(f'E-info error:\t\t{e}'))
