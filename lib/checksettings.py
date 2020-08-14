@@ -70,3 +70,16 @@ class checkSettings:
 			return banner.decode("utf-8")
 		except:
 			return "Unable to get server's banner."
+
+	def get_lhost(self):
+		sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+
+		try:
+			sock.connect(('100.255.255.255', 1))
+			IP = sock.getsockname()[0]
+		except:
+			IP = '127.0.0.1'
+		finally:
+			sock.close()
+
+		return IP
