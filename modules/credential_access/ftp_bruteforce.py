@@ -114,7 +114,7 @@ class FTPBruteforce(cmd2.Cmd):
 		try:
 			if self.target is not None or self.username is not None or self.passwords is not None:
 				lock = Lock()
-				print(info(f'{"Banner":20}{checkSettings().get_banner(self.target, 22)}'))
+				print(info(f'{"Banner":20}{checkSettings().get_banner(self.target, 21)}'))
 				print(self.check_anonymous_login(self.target))
 
 				passwords = open(self.passwords).readlines()
