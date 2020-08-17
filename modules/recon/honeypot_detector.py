@@ -5,9 +5,11 @@
 import argparse
 import cmd2
 import requests
-from lib.db.sqlconnection import *
 from prettytable import from_db_cursor
 from huepy import *
+
+from lib.db.sqlconnection import *
+from lib.opt_data import *
 
 set_parser = argparse.ArgumentParser()
 set_subparsers = set_parser.add_subparsers(title='subcommands', help='subcommand help')
@@ -19,17 +21,27 @@ show_parser = argparse.ArgumentParser()
 show_parser.add_argument('show', choices=["apis", "config"])
 
 class HoneypotDetector(cmd2.Cmd):
-	prompt = 'amaterasu[recon/honeypot_detector]> '
-	#del cmd2.Cmd.do_set
-
 	def __init__(self):
 		# terminal lock
 		super().__init__()
 
 		# db connection
 		self.sql_connection = SQLiteConnection().create_connection('lib/db/amaterasu.db')
-		self.target = ''
+		self.target = None
 		self.shodanAPIkey = SQLiteConnection().select_task_by_priority(self.sql_connection, "key", "APIs", "name", "shodan")[0][0]
+		self.metadata = {'Description'	: 'Scans target for honeypot using Shodan.',
+						'Author'	 	: 'Sam Marx <sam-marx[at]protonmail.com>',
+						'Version'	 	: '1.0',
+		}
+
+		Options = Opt()
+		Options.new(name='target', current_setting=self.target, required=True, description="Website target")
+		Options.new(name='shodan', current_setting=self.shodanAPIkey, required=True, description='Shodan API key')
+
+		self.prompt = 'amaterasu[recon/honeypot_detector]> '
+		self.intro = f'{lightblue("Provided by:")}\n{self.metadata["Author"]}\n\n'
+		self.intro += f'{lightblue("Description:")}\n{self.metadata["Description"]}\n\n'
+		self.intro += f'{lightblue("Options:")}\n{Options.create_table()}\n'
 
 	def show(self, args):
 		'''Shows something'''
@@ -79,15 +91,15 @@ class HoneypotDetector(cmd2.Cmd):
 
 	def do_run(self, args):
 		''' Runs the module.'''
-		if self.target != '' or self.shodanAPIkey != None:
+		if self.target is None or self.shodanAPIkey is not None:
 			requestShodan = requests.get(f'https://api.shodan.io/labs/honeyscore/{self.target}?key={self.shodanAPIkey}')
 
 			if requestShodan.status_code == 401:
-				print(bad('Unauthorized request. You need an API key to use this module.'))
+				print(bad('Unauthorized request. You need a valid API key to use this module.'))
 			if requestShodan.status_code == 200:
 				if float(requestShodan.text) > 0.5:
-					print(f'Apparently, it is a honeypot.\nScore: {requestShodan.text}')
+					print(bad(f'Apparently, it is a honeypot.\n\tScore: {requestShodan.text}'))
 				else:
-					print(f'It is not a honeypot, apparently.\nScore: {requestShodan.text}')
+					print(good(f'It is not a honeypot, apparently.\n\tScore: {requestShodan.text}'))
 		else:
-			print('You need to set a target and a Shodan API key.')
+			print(bad('You need to set a target and a Shodan API key.'))
