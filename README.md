@@ -15,7 +15,7 @@ Please, take a look at [CHANGELOG.md](https://github.com/Sam-Marx/AmaterasuV2/bl
 
 ### Installation
 ```
-git clone https://github.com/Sam-Marx/AmaterasuV2.git
+git clone --depth 1 -b v0.2 https://github.com/Sam-Marx/AmaterasuV2/
 cd AmaterasuV2/
 pip3 install -r requirements.txt
 ```
@@ -28,7 +28,7 @@ python3 amaterasu.py
 ### Donations
 If you find this tool useful and would like to support its development, you can donate.
 
-Donate with Monero:
+Monero:
 ```
 4Av4TZQBVHDdXhLRmLFKaeLqj16SomscHhw6unx5EM3DLEDR8UZjVbJ5DBojDgPVjRGagmuodg1smfbNFmVkwBGWNMibiTH
 ```
