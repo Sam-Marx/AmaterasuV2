@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3
 #coding: utf-8
 # Amaterasu project
 
@@ -31,11 +31,6 @@ parser_api.add_argument('api', type=str, choices=['emailrep', 'shodan', 'leak_lo
 parser_api.add_argument('key', type=str)
 
 class Amaterasu(cmd2.Cmd):
-	version = open('version.txt', 'r').read()
-	checkUpdate = checkSettings().checkUpdate()
-	prompt = 'amaterasu> '
-	intro = f'{banner()} Welcome to Amaterasu v{version}.\n{checkUpdate if checkUpdate else ""}'
-
 	del cmd2.Cmd.do_edit
 	del cmd2.Cmd.do_py
 	del cmd2.Cmd.do_shortcuts
@@ -51,6 +46,15 @@ class Amaterasu(cmd2.Cmd):
 
 		# db connection
 		self.sql_connection = SQLiteConnection().create_connection('lib/db/amaterasu.db')
+
+		version = open('version.txt', 'r').read()
+		checkUpdate = checkSettings().checkUpdate()
+		self.prompt = 'amaterasu> '
+		self.intro = f'{banner()} Welcome to Amaterasu v2.{version}.\n{checkUpdate if checkUpdate else ""}'
+		try:
+			self.set_window_title(f'Amaterasu V2.{version}')
+		except:
+			pass
 
 	def show(self, args):
 		'''methods subcommand of show command'''
@@ -70,13 +74,20 @@ class Amaterasu(cmd2.Cmd):
 				'atg_worm':ATGworm().cmdloop,
 				'links_extractor':LinksExtractor().cmdloop,
 				'emailrep':EmailRep().cmdloop,
-				'cve_2020_5902':cve20205902().cmdloop
+				'cve_2020_5902':cve_2020_5902().cmdloop,
+				'cve_2010_2075':cve_2010_2075().cmdloop,
+				'ftp_bruteforce':FTPBruteforce().cmdloop,
+				'ssh_bruteforce':SSHBruteforce().cmdloop,
+				'gmail_bruteforce':GmailBruteforce().cmdloop,
+				'whois':WHOIS().cmdloop,
+				'ipdata':IPdata().cmdloop,
+				'telnet_bruteforce':TelnetBruteforce().cmdloop,
+				'bolt_rce':bolt_rce().cmdloop
 			}
 
 			modules[args.use.lower()]()
 		except Exception as e:
-			print(e)
-			
+			print(f'Use error: {e}')
 
 	def set_apikey(self, args):
 		try:
