@@ -6,4 +6,4 @@ huepy==1.2.1
 lxml==4.5.2
 holehe==1.322 
 bs4==0.0.1
-paramiko==2.7.1
+paramiko==2.7.2
